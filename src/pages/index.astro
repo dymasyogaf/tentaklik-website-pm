@@ -1,0 +1,9 @@
+---
+import Layout from "../layouts/Layout.astro";
+import App from "../components/App.jsx";
+---
+
+<Layout>
+  <!-- client:only: dashboard butuh sesi login & koneksi Supabase di browser -->
+  <App client:only="react" />
+</Layout>
