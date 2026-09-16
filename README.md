@@ -10,7 +10,7 @@ Fitur: progress bar yang bisa diklik untuk filter status, progress per halaman, 
 src/
   pages/index.astro         Halaman utama (memuat dashboard sebagai React island)
   layouts/Layout.astro      HTML dasar, font, meta
-  components/App.jsx        Cek konfigurasi, login & daftar akun, cek anggota tim
+  components/App.jsx        Cek konfigurasi, login, reset password, cek anggota tim
   components/Board.jsx      Dashboard: ringkasan, filter, board, tabel, impor/ekspor
   components/TaskCard.jsx   Kartu tugas di board
   components/TaskModal.jsx  Form tambah/edit tugas
@@ -38,16 +38,18 @@ supabase/schema.sql         Tabel, keamanan (RLS), realtime
    - **Redirect URLs**: tambahkan alamat itu dan `http://localhost:4321` untuk uji coba lokal. Dipakai oleh link konfirmasi email dan link reset password.
 6. Buka **Project Settings > API**, salin **Project URL** dan **anon public key**.
 
-Opsional tapi disarankan: setelah semua anggota tim punya akun, matikan **Allow new users to sign up** di **Authentication > Sign In / Providers** supaya orang luar tidak bisa mendaftar. Tombol **Daftar** tetap ada di halaman login, tapi pendaftaran akan ditolak server.
+Disarankan: matikan **Allow new users to sign up** di **Authentication > Sign In / Providers**. Halaman login tidak punya tombol daftar, tapi mematikan opsi ini menutup jalur pendaftaran lewat API.
 
 ### Alur akun
 
-Dua lapis, sengaja dipisah:
+Tidak ada pendaftaran mandiri. Admin yang membuat akun, dua langkah:
 
-1. **Akun** — dibuat sendiri lewat tombol **Daftar** di halaman login (email + password).
-2. **Akses board** — hanya email yang ada di tabel `team_members` yang bisa melihat dan mengubah tugas. Punya akun tapi belum didaftarkan admin? Layar akan bilang "Email belum terdaftar di tim".
+1. **Buat akun** — Supabase Dashboard → **Authentication → Users → Add user → Create new user**. Isi email + password, centang **Auto Confirm User** supaya bisa langsung dipakai tanpa email konfirmasi.
+2. **Beri akses board** — jalankan `insert into public.team_members ...` seperti di atas dengan email yang sama.
 
-Jadi pendaftaran mandiri tidak otomatis memberi akses data. Admin tetap harus menjalankan `insert into public.team_members ...` di atas.
+Kedua langkah wajib. Punya akun tapi belum ada di `team_members`? Layar akan bilang "Email belum terdaftar di tim". Untuk mencabut akses cukup hapus barisnya dari `team_members`; untuk menutup akun sepenuhnya, hapus juga user-nya di Authentication → Users.
+
+Anggota yang lupa password bisa pakai link **Lupa password?** di halaman masuk, atau admin mengubahnya di Authentication → Users.
 
 ## 2. Jalankan di komputer
 
@@ -59,7 +61,7 @@ npm install
 npm run dev               # buka http://localhost:4321
 ```
 
-Klik **Daftar** untuk membuat akun, konfirmasi lewat email, lalu masuk dengan email + password. Board terbuka kalau email itu sudah ada di `team_members`.
+Masuk dengan email + password akun yang sudah dibuat admin. Board terbuka kalau email itu juga ada di `team_members`.
 
 ## 3. Pindahkan data dari artifact Claude
 

@@ -128,20 +128,14 @@ function SetNewPassword({ onDone }) {
 // Pesan error Supabase berbahasa Inggris; terjemahkan yang paling sering muncul.
 const ERRORS = {
   "Invalid login credentials": "Email atau password salah.",
-  "Email not confirmed": "Email belum dikonfirmasi. Buka link konfirmasi yang kami kirim ke inbox Anda.",
-  "User already registered": "Email ini sudah terdaftar. Silakan masuk.",
+  "Email not confirmed": "Email belum dikonfirmasi. Hubungi admin.",
   "Password should be at least 6 characters": "Password minimal 6 karakter.",
 };
 const translate = (msg) => ERRORS[msg] || msg;
 
-const MODES = {
-  login: { title: "Masuk", submit: "Masuk", busy: "Memeriksa…" },
-  register: { title: "Buat akun", submit: "Daftar", busy: "Mendaftarkan…" },
-  forgot: { title: "Lupa password", submit: "Kirim link reset", busy: "Mengirim…" },
-};
-
+// Tidak ada pendaftaran mandiri: akun dibuat admin lewat dashboard Supabase.
 function Login() {
-  const [mode, setMode] = useState("login"); // login | register | forgot
+  const [mode, setMode] = useState("login"); // login | forgot
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -162,30 +156,13 @@ function Login() {
     setBusy(true);
     setError("");
 
-    const redirect = window.location.origin + window.location.pathname;
-
     if (mode === "forgot") {
-      const { error } = await supabase.auth.resetPasswordForEmail(mail, { redirectTo: redirect });
+      const { error } = await supabase.auth.resetPasswordForEmail(mail, {
+        redirectTo: window.location.origin + window.location.pathname,
+      });
       setBusy(false);
       if (error) setError(translate(error.message));
       else setNotice(`Link untuk mengatur ulang password sudah dikirim ke ${mail}.`);
-      return;
-    }
-
-    if (mode === "register") {
-      const { data, error } = await supabase.auth.signUp({
-        email: mail,
-        password,
-        options: { emailRedirectTo: redirect },
-      });
-      setBusy(false);
-      if (error) {
-        setError(translate(error.message));
-      } else if (!data.session) {
-        // Supabase mewajibkan konfirmasi email sebelum akun aktif.
-        setNotice(`Akun dibuat. Buka email di ${mail} dan klik link konfirmasi, lalu masuk.`);
-      }
-      // Kalau data.session ada, onAuthStateChange di atas langsung memindahkan layar.
       return;
     }
 
@@ -194,11 +171,9 @@ function Login() {
     if (error) setError(translate(error.message));
   };
 
-  const copy = MODES[mode];
-
   return (
     <Shell>
-      <h1 className="auth-title">{copy.title}</h1>
+      <h1 className="auth-title">{mode === "login" ? "Masuk" : "Lupa password"}</h1>
 
       {notice ? (
         <>
@@ -208,9 +183,9 @@ function Login() {
       ) : (
         <form onSubmit={submit}>
           <p className="auth-text">
-            {mode === "login" && "Masuk dengan email dan password akun tim Anda."}
-            {mode === "register" && "Daftarkan email tim Anda. Akses board diberikan admin setelah akun dibuat."}
-            {mode === "forgot" && "Masukkan email akun Anda. Kami kirim link untuk membuat password baru."}
+            {mode === "login"
+              ? "Masuk dengan email dan password akun tim Anda."
+              : "Masukkan email akun Anda. Kami kirim link untuk membuat password baru."}
           </p>
 
           <label className="field">
@@ -223,45 +198,41 @@ function Login() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@tentaklik.com"
+              placeholder="nama@alfatihah.com"
             />
           </label>
 
-          {mode !== "forgot" && (
-            <label className="field">
-              <span>Password</span>
-              <input
-                className="inp"
-                type="password"
-                required
-                minLength={6}
-                autoComplete={mode === "register" ? "new-password" : "current-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === "register" ? "Minimal 6 karakter" : "••••••••"}
-              />
-            </label>
-          )}
-
           {mode === "login" && (
-            <button type="button" className="auth-link auth-link-right" onClick={() => go("forgot")}>
-              Lupa password?
-            </button>
+            <>
+              <label className="field">
+                <span>Password</span>
+                <input
+                  className="inp"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                />
+              </label>
+              <button type="button" className="auth-link auth-link-right" onClick={() => go("forgot")}>
+                Lupa password?
+              </button>
+            </>
           )}
 
           {error && <p className="auth-error">{error}</p>}
 
           <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-            {busy ? copy.busy : copy.submit}
+            {busy ? (mode === "login" ? "Memeriksa…" : "Mengirim…") : mode === "login" ? "Masuk" : "Kirim link reset"}
           </button>
 
-          <p className="auth-switch">
-            {mode === "login" ? (
-              <>Belum punya akun? <button type="button" className="auth-link" onClick={() => go("register")}>Daftar</button></>
-            ) : (
-              <>Sudah punya akun? <button type="button" className="auth-link" onClick={() => go("login")}>Masuk</button></>
-            )}
-          </p>
+          {mode === "forgot" && (
+            <p className="auth-switch">
+              <button type="button" className="auth-link" onClick={() => go("login")}>Kembali ke halaman masuk</button>
+            </p>
+          )}
         </form>
       )}
     </Shell>
