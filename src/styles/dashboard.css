@@ -189,5 +189,9 @@ tr.row:hover td { background: #FFFBF8; }
 .auth-title { margin: 0 0 10px; font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
 .auth-text { margin: 0 0 16px; color: var(--muted); }
 .auth-error { margin: -4px 0 12px; color: var(--late); font-size: 13px; }
+.auth-link { background: none; border: 0; padding: 0; color: var(--orange-ink); font-weight: 700; text-decoration: underline; }
+.auth-link:hover { color: var(--orange); }
+.auth-link-right { display: block; margin: -6px 0 14px auto; font-size: 13px; font-weight: 600; }
+.auth-switch { margin: 16px 0 0; text-align: center; color: var(--muted); font-size: 13.5px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

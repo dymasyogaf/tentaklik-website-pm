@@ -2,7 +2,7 @@
 
 Dashboard project management untuk memonitor pengerjaan website utama Tentaklik. Dibangun dengan **Astro + React island**, data disimpan di **Supabase** dan tersinkron realtime ke semua anggota tim.
 
-Fitur: progress bar yang bisa diklik untuk filter status, progress per halaman, filter halaman/PIC/status, pencarian, tampilan Board (drag and drop) dan Tabel, detail tugas lengkap, impor dari file Excel Workspace lama, ekspor ke Excel, dan login email tanpa password khusus anggota tim.
+Fitur: progress bar yang bisa diklik untuk filter status, progress per halaman, filter halaman/PIC/status, pencarian, tampilan Board (drag and drop) dan Tabel, detail tugas lengkap, impor dari file Excel Workspace lama, ekspor ke Excel, dan login email + password khusus anggota tim.
 
 ## Struktur
 
@@ -10,7 +10,7 @@ Fitur: progress bar yang bisa diklik untuk filter status, progress per halaman, 
 src/
   pages/index.astro         Halaman utama (memuat dashboard sebagai React island)
   layouts/Layout.astro      HTML dasar, font, meta
-  components/App.jsx        Cek konfigurasi, login magic link, cek anggota tim
+  components/App.jsx        Cek konfigurasi, login & daftar akun, cek anggota tim
   components/Board.jsx      Dashboard: ringkasan, filter, board, tabel, impor/ekspor
   components/TaskCard.jsx   Kartu tugas di board
   components/TaskModal.jsx  Form tambah/edit tugas
@@ -32,12 +32,22 @@ supabase/schema.sql         Tabel, keamanan (RLS), realtime
      ('webdev@tentaklik.com');
    ```
    Hanya email di tabel ini yang bisa melihat dan mengubah tugas. Untuk mencabut akses, hapus barisnya.
-4. Buka **Authentication > URL Configuration**:
+4. Buka **Authentication > Sign In / Providers > Email**, pastikan **Email** aktif dan **Enable email provider** menyala. Login memakai email + password.
+5. Buka **Authentication > URL Configuration**:
    - **Site URL**: alamat dashboard setelah online, misalnya `https://pm.tentaklik.com`.
-   - **Redirect URLs**: tambahkan alamat itu dan `http://localhost:4321` untuk uji coba lokal.
-5. Buka **Project Settings > API**, salin **Project URL** dan **anon public key**.
+   - **Redirect URLs**: tambahkan alamat itu dan `http://localhost:4321` untuk uji coba lokal. Dipakai oleh link konfirmasi email dan link reset password.
+6. Buka **Project Settings > API**, salin **Project URL** dan **anon public key**.
 
-Opsional tapi disarankan: di **Authentication > Sign In / Providers**, matikan pendaftaran user baru setelah semua anggota tim pernah login sekali, supaya orang luar tidak bisa membuat akun.
+Opsional tapi disarankan: setelah semua anggota tim punya akun, matikan **Allow new users to sign up** di **Authentication > Sign In / Providers** supaya orang luar tidak bisa mendaftar. Tombol **Daftar** tetap ada di halaman login, tapi pendaftaran akan ditolak server.
+
+### Alur akun
+
+Dua lapis, sengaja dipisah:
+
+1. **Akun** — dibuat sendiri lewat tombol **Daftar** di halaman login (email + password).
+2. **Akses board** — hanya email yang ada di tabel `team_members` yang bisa melihat dan mengubah tugas. Punya akun tapi belum didaftarkan admin? Layar akan bilang "Email belum terdaftar di tim".
+
+Jadi pendaftaran mandiri tidak otomatis memberi akses data. Admin tetap harus menjalankan `insert into public.team_members ...` di atas.
 
 ## 2. Jalankan di komputer
 
@@ -49,7 +59,7 @@ npm install
 npm run dev               # buka http://localhost:4321
 ```
 
-Login dengan email yang sudah didaftarkan, klik link di email, dan board terbuka.
+Klik **Daftar** untuk membuat akun, konfirmasi lewat email, lalu masuk dengan email + password. Board terbuka kalau email itu sudah ada di `team_members`.
 
 ## 3. Pindahkan data dari artifact Claude
 
