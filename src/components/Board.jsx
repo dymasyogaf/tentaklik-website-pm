@@ -146,7 +146,7 @@ export default function Board({ session }) {
       <header className="band">
         <div className="band-row">
           <div>
-            <h1 className="title">Rombak Total Website Utama Tentaklik</h1>
+            <h1 className="title">Projek Management Tentaklik</h1>
             <p className="sync">
               <span className="dot" style={{ background: syncInfo[0] }} />
               {syncInfo[1]}
