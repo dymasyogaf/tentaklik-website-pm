@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "deploy": "astro build && wrangler deploy",
+    "cf:preview": "astro build && wrangler dev"
+  },
+  "devDependencies": {
+    "wrangler": "^4.132.0"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",

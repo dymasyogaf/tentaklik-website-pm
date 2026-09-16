@@ -58,18 +58,49 @@ Login dengan email yang sudah didaftarkan, klik link di email, dan board terbuka
 
 File Workspace Excel asli (dengan checkbox "Selesai") juga bisa langsung diimpor.
 
-## 4. Deploy
+## 4. Deploy ke Cloudflare
 
-Proyek ini menghasilkan situs statis, jadi bisa dipasang di mana saja.
+Proyek ini menghasilkan situs statis. `wrangler.jsonc` sudah menyiapkannya untuk **Cloudflare Workers static assets**.
+
+Penting: `PUBLIC_SUPABASE_URL` dan `PUBLIC_SUPABASE_ANON_KEY` ditanam ke dalam bundle **saat build**, bukan dibaca saat situs dijalankan. Jadi keduanya harus tersedia di mesin/CI yang menjalankan `npm run build`. Jangan memakai `wrangler secret put` untuk ini — tidak akan terbaca.
+
+### Cara A — dari komputer sendiri (paling cepat)
+
+Pakai `.env` yang sudah terisi.
 
 ```bash
-npm run build             # hasil di folder dist/
+npx wrangler login        # sekali saja, membuka browser
+npm run deploy            # astro build && wrangler deploy
 ```
 
-- **Vercel / Netlify / Cloudflare Pages**: hubungkan repo Git, build command `npm run build`, output `dist`, lalu isi dua environment variable `PUBLIC_SUPABASE_URL` dan `PUBLIC_SUPABASE_ANON_KEY` di pengaturan project.
-- **Hosting biasa / VPS**: jalankan `npm run build` dengan `.env` terisi, lalu upload isi folder `dist/`.
+Hasil: `https://tentaklik-website-pm.<subdomain>.workers.dev`.
 
-Setelah punya alamat final, pastikan alamat itu sudah dimasukkan ke Site URL dan Redirect URLs di Supabase (langkah 1.4), atau link login akan mengarah ke alamat yang salah.
+Uji hasil build secara lokal sebelum deploy: `npm run cf:preview`.
+
+### Cara B — Workers Builds (auto deploy tiap push)
+
+1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Import a repository** → pilih repo ini.
+2. Build command `npm run build`, deploy command `npx wrangler deploy`.
+3. Di **Settings → Variables and Secrets**, tambahkan `PUBLIC_SUPABASE_URL` dan `PUBLIC_SUPABASE_ANON_KEY` dengan scope **Build**.
+
+### Cara C — GitHub Actions
+
+Workflow sudah ada di `.github/workflows/deploy.yml` (jalan tiap push ke `main`). Isi 4 secret di **GitHub → Settings → Secrets and variables → Actions**:
+
+| Secret | Dari mana |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | Cloudflare → My Profile → API Tokens → template **Edit Cloudflare Workers** |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare → Workers & Pages, di sidebar kanan |
+| `PUBLIC_SUPABASE_URL` | sama dengan isi `.env` |
+| `PUBLIC_SUPABASE_ANON_KEY` | sama dengan isi `.env` |
+
+### Setelah deploy (wajib)
+
+Salin alamat final, lalu di Supabase → **Authentication → URL Configuration** masukkan ke **Site URL** dan **Redirect URLs**. Tanpa ini, link login akan mengarah ke alamat yang salah dan login gagal.
+
+### Domain sendiri
+
+Workers & Pages → Worker ini → **Settings → Domains & Routes → Add custom domain**, misalnya `pm.tentaklik.com` (domain harus sudah ada di akun Cloudflare). Jangan lupa tambahkan juga alamat ini ke Redirect URLs Supabase.
 
 ## Catatan keamanan
 

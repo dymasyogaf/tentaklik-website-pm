@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tentaklik-website-pm",
+  "compatibility_date": "2026-09-16",
+
+  // Situs statis hasil `astro build`. Tidak ada kode Worker (tanpa "main"):
+  // Cloudflare hanya menyajikan file dari ./dist.
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    // Dashboard hanya punya satu halaman; path lain dikembalikan ke index.html
+    // supaya redirect magic link Supabase tetap mendarat di aplikasi.
+    "not_found_handling": "single-page-application"
+  },
+
+  "observability": {
+    "enabled": true
+  }
+}
